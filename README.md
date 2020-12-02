@@ -7,5 +7,7 @@ https://adventofcode.com/2020
 `stack run <two digit day> <optional: override data file>`
 
 ```
-
+➜  aoc2020 git:(master) stack run 02
+640
+472
 ```
