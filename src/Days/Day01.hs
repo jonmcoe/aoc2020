@@ -2,7 +2,7 @@ module Days.Day01 where
 
 import qualified Data.Set as Set
 import Data.List (find, tails)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromJust)
 
 target = 2020
 
@@ -17,7 +17,7 @@ combinations n xs = [ y:ys | y:xs' <- tails xs
                            , ys <- combinations (n-1) xs']
 
 findSummingGroup :: Int -> [Integer] -> [Integer]
-findSummingGroup n l = fromMaybe [] ans
+findSummingGroup n l = fromJust ans
   where
     ans = find (\x -> sum x == target) combos
     combos = combinations n l
