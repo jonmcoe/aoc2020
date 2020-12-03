@@ -10,5 +10,4 @@ day03a :: String -> String
 day03a = show . numTreesHit 3 1 . lines
 
 day03b :: String -> String
-day03b s = show $ product [numTreesHit 1 1 grid, numTreesHit 3 1 grid, numTreesHit 5 1 grid, numTreesHit 7 1 grid, numTreesHit 1 2 grid]
-  where grid = lines s
+day03b s = show $ product $ map (\(x, y) -> numTreesHit x y (lines s)) [(1,1),(3,1),(5,1),(7,1),(1,2)]
