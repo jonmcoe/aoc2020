@@ -12,7 +12,7 @@ everyone :: [String] -> Int
 everyone = length . foldl1 S.intersection . map S.fromList
 
 declarationsAgg :: ([String] -> Int) -> String -> Int
-declarationsAgg f = sum . map (f . words . unwords)  . splitOn [""] . lines
+declarationsAgg f = sum . map f . splitOn [""] . lines
 
 day06a :: String -> String
 day06a = show . declarationsAgg anyone
