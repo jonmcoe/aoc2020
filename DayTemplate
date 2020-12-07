@@ -1,0 +1,7 @@
+module Days.Day where
+
+day07a :: String -> String
+day07a = const "a"
+
+day07b :: String -> String
+day07b = const "b"
