@@ -1,5 +1,6 @@
 module Days.Day07 where
 
+import Data.Char (digitToInt)
 import Data.List.Split
 import qualified Data.Map as M
 
@@ -17,15 +18,15 @@ parse = M.fromList . map parseLine . lines
 parseLine :: String -> (String, Requirement)
 parseLine s = (outerBag, map toTuple innerBagList)
   where
-    toTuple l = (read [head l] :: Int, tail l)
+    toTuple l = (digitToInt $ head l, tail l)
     innerBagList = if innerBagString == endBag then [] else splitOn "," innerBagString
     innerBagString = halfSplit !! 1
     outerBag = head halfSplit
     halfSplit = splitOn "contain" $ filter (`notElem` " s.") s
 
 ruleAgg :: M.Map String Requirement -> Int -> String -> Requirement
-ruleAgg ruleMap factor start = 
-  (factor, start) : 
+ruleAgg ruleMap factor start =
+  (factor, start) :
   concat [ruleAgg ruleMap (factor * fst l) (snd l) | l <- M.findWithDefault [] start ruleMap]
 
 day07a :: String -> String
