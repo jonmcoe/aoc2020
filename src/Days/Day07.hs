@@ -28,6 +28,7 @@ ruleAgg :: M.Map String Requirement -> Int -> String -> Requirement
 ruleAgg ruleMap factor start =
   (factor, start) :
   concat [ruleAgg ruleMap (factor * fst l) (snd l) | l <- M.findWithDefault [] start ruleMap]
+-- ALTERNATIVE:  concatMap (\(f,s) -> ruleAgg ruleMap (factor * f) s) (M.findWithDefault [] start ruleMap)
 
 day07a :: String -> String
 day07a s = show $ length $ filter (elem myBag) $ map (map snd . ruleAgg ruleMap 1) ruleList
