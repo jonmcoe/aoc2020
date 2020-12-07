@@ -3,18 +3,24 @@ module Days.Day07 where
 import Data.List.Split
 import qualified Data.Map as M
 
+type Requirement = [(Int, String)]
+
 myBag :: String
 myBag = "hinygoldbag"
 
-parse :: String -> M.Map String [String]
+parse :: String -> M.Map String Requirement
 parse = M.fromList . map parseLine . lines
 
-parseLine :: String -> (String, [String])
-parseLine s = (head halfSplit, splitOn "," (halfSplit !! 1))
-  where halfSplit = splitOn "contain" $ filter (`notElem` " s.0123456789") s
+parseLine :: String -> (String, Requirement)
+parseLine s = (outerBag, map toTuple innerBagList)
+  where
+    toTuple l = (read [head l] :: Int, tail l)
+    innerBagList = splitOn "," (halfSplit !! 1)
+    outerBag = head halfSplit
+    halfSplit = splitOn "contain" $ filter (`notElem` " s.") s
 
-ruleExpandedContents :: M.Map String [String] -> String -> [String]
-ruleExpandedContents ruleMap start = start : concat [ruleExpandedContents ruleMap l | l <- M.findWithDefault [] start ruleMap]
+ruleExpandedContents :: M.Map String Requirement -> String -> [String]
+ruleExpandedContents ruleMap start = start : concat [ruleExpandedContents ruleMap l | l <- map snd $ M.findWithDefault [] start ruleMap]
 
 day07a :: String -> String
 day07a s = show $ length $ filter (elem myBag) $ map (ruleExpandedContents ruleMap) ruleList
