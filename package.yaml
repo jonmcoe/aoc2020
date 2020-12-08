@@ -24,6 +24,7 @@ dependencies:
 - split
 - sort
 - containers
+- parsec
 
 library:
   source-dirs: src

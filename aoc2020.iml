@@ -44,5 +44,9 @@
     <orderEntry type="library" name="primitive-0.6.4.0" level="project" />
     <orderEntry type="library" name="bytestring-0.10.8.2" level="project" />
     <orderEntry type="library" name="sort-1.0.0.0" level="project" />
+    <orderEntry type="library" name="parsec-3.1.13.0" level="project" />
+    <orderEntry type="library" name="mtl-2.2.2" level="project" />
+    <orderEntry type="library" name="text-1.2.3.1" level="project" />
+    <orderEntry type="library" name="binary-0.8.6.0" level="project" />
   </component>
 </module>
