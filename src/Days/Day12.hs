@@ -1,66 +1,41 @@
 module Days.Day12 where
 
 type Position = (Int, Int)
-data Bearing = Northy | Southy | Easty | Westy deriving (Show, Eq)
-data NavInstruction =
-  North Int | South Int | East Int | West Int |
-  Leftwards Int | Rightwards Int | Forward Int deriving (Show, Eq)
+type CardinalFunc = (Position, Position) -> Char -> Int -> (Position, Position)
 
-parseNavInstruction :: String -> NavInstruction
-parseNavInstruction (x:xs)
-  | x == 'N' = North (read xs)
-  | x == 'S' = South (read xs)
-  | x == 'E' = East (read xs)
-  | x == 'W' = West (read xs)
-  | x == 'L' = Leftwards (read xs)
-  | x == 'R' = Rightwards (read xs)
-  | x == 'F' = Forward (read xs)
-  | otherwise = error "bad first character"
-parseNavInstruction _ = error "bad length"
+rotateLeft :: Position -> Int -> Position
+rotateLeft (x, y) 90 = (-1 * y, x)
+rotateLeft t x
+  | x `mod` 90 == 0 = rotateLeft (rotateLeft t 90) (x - 90)
+  | otherwise = error "unsupported turning degrees"
 
-parseInstructions :: String -> [NavInstruction]
-parseInstructions = map parseNavInstruction . lines
+addToBoatPosition :: CardinalFunc
+addToBoatPosition ((x, y), dt) inst mag
+  | inst == 'N' = ((x, y + mag), dt)
+  | inst == 'S' = ((x, y - mag), dt)
+  | inst == 'E' = ((x + mag, y), dt)
+  | inst == 'W' = ((x - mag, y), dt)
+  | otherwise = error "bad instruction"
 
-rotate :: Bearing -> NavInstruction -> Bearing
-rotate bearing (Leftwards 90)
-  | bearing == Northy = Westy
-  | bearing == Southy = Easty
-  | bearing == Easty = Northy
-  | bearing == Westy = Southy
-rotate bearing (Leftwards other) = rotate (rotate bearing (Leftwards 90)) (Leftwards (other - 90))
-rotate bearing (Rightwards other) = rotate bearing (Leftwards (360 - other))
+addToWaypointPosition :: CardinalFunc
+addToWaypointPosition (t, (dx, dy)) inst mag
+  | inst == 'N' = (t, (dx, dy + mag))
+  | inst == 'S' = (t, (dx, dy - mag))
+  | inst == 'E' = (t, (dx + mag, dy))
+  | inst == 'W' = (t, (dx - mag, dy))
+  | otherwise = error "bad instruction"
 
-executeInstruction :: (Position, Bearing) -> NavInstruction -> (Position, Bearing)
-executeInstruction ((x,y), bearing) (North mag) = ((x, y + mag), bearing)
-executeInstruction ((x,y), bearing) (South mag) = ((x, y - mag), bearing)
-executeInstruction ((x,y), bearing) (East mag) = ((x + mag, y), bearing)
-executeInstruction ((x,y), bearing) (West mag) = ((x - mag, y), bearing)
-executeInstruction ((x,y), bearing) (Forward mag)
-  | bearing == Northy = ((x, y + mag), bearing)
-  | bearing == Southy = ((x, y - mag), bearing)
-  | bearing == Easty = ((x + mag, y), bearing)
-  | bearing == Westy = ((x - mag, y), bearing)
-executeInstruction ((x,y), bearing) turn = ((x,y), rotate bearing turn)
-
-rotateWaypoint :: Position -> NavInstruction -> Position
-rotateWaypoint (x, y) (Leftwards 90) = (-1 * y, x)
-rotateWaypoint pos (Leftwards other) = rotateWaypoint (rotateWaypoint pos (Leftwards 90)) (Leftwards (other - 90))
-rotateWaypoint pos (Rightwards other) = rotateWaypoint pos (Leftwards (360 - other))
-
-
-executeInstruction2 :: (Position, Position) -> NavInstruction -> (Position, Position)
-executeInstruction2 (boatPos, (wayX, wayY)) (North mag) = (boatPos, (wayX, wayY + mag))
-executeInstruction2 (boatPos, (wayX, wayY)) (South mag) = (boatPos, (wayX, wayY - mag))
-executeInstruction2 (boatPos, (wayX, wayY)) (East mag) = (boatPos, (wayX + mag, wayY))
-executeInstruction2 (boatPos, (wayX, wayY)) (West mag) = (boatPos, (wayX - mag, wayY))
-executeInstruction2 ((boatX, boatY), (wayX, wayY)) (Forward mag) = ((boatX + wayX * mag, boatY + wayY * mag), (wayX, wayY))
-executeInstruction2 (boatPos, wayPos) turn = (boatPos, rotateWaypoint wayPos turn)
-
+executeInstruction :: CardinalFunc -> (Position, Position) -> String -> (Position, Position)
+executeInstruction cardinalFunc ((x,y), (dx, dy)) (inst:magStr)
+  | inst == 'F' = ((x + dx * mag, y + dy * mag), (dx, dy))
+  | inst == 'L' = ((x, y), rotateLeft (dx, dy) mag)
+  | inst == 'R' = ((x, y), rotateLeft (dx, dy) (360 - mag))
+  | otherwise = cardinalFunc ((x, y), (dx, dy)) inst mag
+  where mag = read magStr
+executeInstruction _ _ s = error $ "could not parse instruction: " ++ s
 
 day12a :: String -> String
-day12a = show . (\((x,y),_) -> abs x + abs y) . foldl executeInstruction ((0,0), Easty) . parseInstructions
+day12a = show . (\((x,y),_) -> abs x + abs y) . foldl (executeInstruction addToBoatPosition) ((0,0), (1,0)) . lines
 
 day12b :: String -> String
-day12b = show . (\((x,y),_) -> abs x + abs y) . foldl executeInstruction2 ((0,0), (10, 1)) . parseInstructions
-
--- TODO: "dirtier" less typed solution as in  https://www.reddit.com/r/adventofcode/comments/kbj5me/2020_day_12_solutions/gfhv5la/ may be preferable
+day12b = show . (\((x,y),_) -> abs x + abs y) . foldl (executeInstruction addToWaypointPosition) ((0,0), (10, 1)) . lines
