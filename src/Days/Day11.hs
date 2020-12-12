@@ -2,47 +2,53 @@ module Days.Day11 where
 
 import Data.List (find)
 import Data.Maybe (mapMaybe)
+import qualified Data.Map as M
 
-type AdjacencyFunction = [[Char]] -> Int -> Int -> [Char]
+type Grid = M.Map (Int, Int) Char
+type AdjacencyFunction = Grid -> (Int, Int) -> [Char]
 
-nextChar :: AdjacencyFunction -> Int -> [[Char]] -> Int -> Int -> Char
-nextChar adjacencyFunc threshold g x y = case current of
+directions :: [(Int, Int)]
+directions = [(dx,dy) | dy <- [-1..1], dx <- [-1..1], not (dx == 0 && dy == 0)]
+
+nextChar :: AdjacencyFunction -> Int -> Grid -> (Int, Int) -> Char -> Char
+nextChar adjacencyFunc threshold g t current = case current of
   'L' -> if '#' `elem` surroundings then 'L' else '#'
   '#' -> if length (filter (== '#') surroundings) >= threshold then 'L' else '#'
   c -> c
   where
-    current = g!!y!!x
-    surroundings = adjacencyFunc g y x
+    surroundings = adjacencyFunc g t
 
-nextGrid :: AdjacencyFunction -> Int -> [[Char]] -> [[Char]]
-nextGrid adjacencyFunc threshold g = [
-  [nextCharPartial g x y | x <- [0..(length (head g) - 1)]]
-  | y <- [0..length g - 1]]
-  where nextCharPartial = nextChar adjacencyFunc threshold
+nextGrid :: AdjacencyFunction -> Int -> Grid -> Grid
+nextGrid adjacencyFunc threshold g = M.mapWithKey nextCharPartial g
+  where nextCharPartial = nextChar adjacencyFunc threshold g
+
+makeMap :: (Integral a) => [[b]] -> M.Map (a, a) b
+makeMap m = M.fromList $ concat [[((x, y), c) | (x, c) <- zip [0 ..] r] | (y, r) <- zip [0 ..] m]
+
+untilRepeated :: Eq t => (t -> t) -> t -> t
+untilRepeated f a
+  | nextVal == a = a
+  | otherwise = untilRepeated f nextVal
+  where nextVal = f a
 
 runGridToCompletion :: AdjacencyFunction -> Int -> String -> String
-runGridToCompletion f threshold = show . sum . map (length . filter (== '#')) . until (\g -> nextGridPartial g == g) nextGridPartial . lines
+runGridToCompletion f threshold =
+  show . length . filter (== '#') . M.elems .
+  untilRepeated nextGridPartial .
+  makeMap . lines
   where nextGridPartial = nextGrid f threshold
 
 simpleAdjacency :: AdjacencyFunction
-simpleAdjacency g y x = [g!!y'!!x' | y' <- [topY..bottomY], x' <- [leftX..rightX], not (y == y' && x == x')]
-  where
-    leftX = max (x-1) 0
-    rightX = min (x+1) (length (head g) - 1)
-    topY = max (y-1) 0
-    bottomY = min (y+1) (length g - 1)
+simpleAdjacency g (x,y) = mapMaybe (\(dx, dy) -> g M.!? (x + dx, y + dy)) directions
 
 day11a :: String -> String
 day11a = runGridToCompletion simpleAdjacency 4
 
 visibilityAdjacency :: AdjacencyFunction
-visibilityAdjacency g y x = mapMaybe firstInDirection directions
+visibilityAdjacency g t = mapMaybe firstInDirection directions
   where
-    firstInDirection (dx, dy) = find (/= '.') $ map (\(y', x') -> g!!y'!!x') $
-      takeWhile inBounds $ drop 1 $ iterate (\(y', x') -> (y' + dy, x' + dx)) (y,x)
-    inBounds (y', x') = y' >= 0 && x' >= 0 && y' < length g && x' < length (head g)
-    directions = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
-
+    firstInDirection (dx, dy) = find (/= '.') $ map (g M.!) $ takeWhile (`M.member` g) $
+      drop 1 $ iterate (\(y', x') -> (y' + dy, x' + dx)) t
 
 day11b :: String -> String
 day11b = runGridToCompletion visibilityAdjacency 5
