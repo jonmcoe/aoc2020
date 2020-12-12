@@ -9,21 +9,19 @@ rotateLeft t x
   | x `mod` 90 == 0 = rotateLeft (rotateLeft t 90) (x - 90)
   | otherwise = error "unsupported turning degrees"
 
+addToPosition :: Position -> Char -> Int -> Position
+addToPosition (x,y) inst mag
+  | inst == 'N' = (x, y + mag)
+  | inst == 'S' = (x, y - mag)
+  | inst == 'E' = (x + mag, y)
+  | inst == 'W' = (x - mag, y)
+  | otherwise = error $ "bad instruction" ++ [inst]
+
 addToBoatPosition :: CardinalFunc
-addToBoatPosition ((x, y), dt) inst mag
-  | inst == 'N' = ((x, y + mag), dt)
-  | inst == 'S' = ((x, y - mag), dt)
-  | inst == 'E' = ((x + mag, y), dt)
-  | inst == 'W' = ((x - mag, y), dt)
-  | otherwise = error "bad instruction"
+addToBoatPosition (t, dt) inst mag = (addToPosition t inst mag, dt)
 
 addToWaypointPosition :: CardinalFunc
-addToWaypointPosition (t, (dx, dy)) inst mag
-  | inst == 'N' = (t, (dx, dy + mag))
-  | inst == 'S' = (t, (dx, dy - mag))
-  | inst == 'E' = (t, (dx + mag, dy))
-  | inst == 'W' = (t, (dx - mag, dy))
-  | otherwise = error "bad instruction"
+addToWaypointPosition (t, dt) inst mag = (t, addToPosition dt inst mag)
 
 executeInstruction :: CardinalFunc -> (Position, Position) -> String -> (Position, Position)
 executeInstruction cardinalFunc ((x,y), (dx, dy)) (inst:magStr)
@@ -34,8 +32,12 @@ executeInstruction cardinalFunc ((x,y), (dx, dy)) (inst:magStr)
   where mag = read magStr
 executeInstruction _ _ s = error $ "could not parse instruction: " ++ s
 
+manhattanDistanceFromOriginOfEndingPosition :: CardinalFunc -> String -> String
+manhattanDistanceFromOriginOfEndingPosition cardinalFunc =
+  show . (\((x,y),_) -> abs x + abs y) . foldl (executeInstruction cardinalFunc) ((0,0), (1,0)) . lines
+
 day12a :: String -> String
-day12a = show . (\((x,y),_) -> abs x + abs y) . foldl (executeInstruction addToBoatPosition) ((0,0), (1,0)) . lines
+day12a = manhattanDistanceFromOriginOfEndingPosition addToBoatPosition
 
 day12b :: String -> String
-day12b = show . (\((x,y),_) -> abs x + abs y) . foldl (executeInstruction addToWaypointPosition) ((0,0), (10, 1)) . lines
+day12b = manhattanDistanceFromOriginOfEndingPosition addToWaypointPosition
