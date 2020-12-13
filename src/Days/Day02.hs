@@ -12,6 +12,7 @@ data Policy =
     }
   deriving (Show)
 
+-- TODO: this could use a real parser combinator
 parseLine :: String -> (Policy, String)
 parseLine s =
   ( Policy {leftParam = read $ head asList, rightParam = read $ asList !! 1, characterOfInterest = head $ asList !! 2}

@@ -7,7 +7,7 @@ import qualified Data.Map as M
 type Requirement = [(Int, String)]
 
 myBag :: String
-myBag = "hinygoldbag"
+myBag = "hinygoldbag" -- lol
 
 endBag :: String
 endBag = "nootherbag"
@@ -15,6 +15,7 @@ endBag = "nootherbag"
 parse :: String -> M.Map String Requirement
 parse = M.fromList . map parseLine . lines
 
+-- TODO: this could use a real parser combinator
 parseLine :: String -> (String, Requirement)
 parseLine s = (outerBag, map toTuple innerBagList)
   where
@@ -22,7 +23,7 @@ parseLine s = (outerBag, map toTuple innerBagList)
     innerBagList = if innerBagString == endBag then [] else splitOn "," innerBagString
     innerBagString = halfSplit !! 1
     outerBag = head halfSplit
-    halfSplit = splitOn "contain" $ filter (`notElem` " s.") s
+    halfSplit = splitOn "contain" $ filter (`notElem` " s.") s -- lol
 
 ruleAgg :: M.Map String Requirement -> Int -> String -> Requirement
 ruleAgg ruleMap factor start =

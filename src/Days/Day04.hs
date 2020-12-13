@@ -4,6 +4,8 @@ import Data.List.Split
 import qualified Data.Map as M
 import qualified Data.Set as S
 
+-- TODO: this could use a real parser combinator
+
 --data MeasurementUnit = INCH | CENTIMETER deriving (Show)
 --
 --data Passport = Passport
