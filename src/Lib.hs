@@ -12,6 +12,7 @@ import Days.Day09 (day09a, day09b)
 import Days.Day10 (day10a, day10b)
 import Days.Day11 (day11a, day11b)
 import Days.Day12 (day12a, day12b)
+import Days.Day13 (day13a, day13b)
 
 daysMapping :: String -> (String -> String, String -> String)
 daysMapping "01" = (day01a, day01b)
@@ -26,4 +27,5 @@ daysMapping "09" = (day09a, day09b)
 daysMapping "10" = (day10a, day10b)
 daysMapping "11" = (day11a, day11b)
 daysMapping "12" = (day12a, day12b)
+daysMapping "13" = (day13a, day13b)
 daysMapping _    = error "not implemented"
