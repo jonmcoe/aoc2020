@@ -1,28 +1,25 @@
 module Days.Day15 where
 
-import Data.List (find)
 import Data.List.Split (splitOn)
+import qualified Data.Map as M
 
-appendNextEntry :: [Int] -> [Int]
-appendNextEntry l = l ++ [length l - indexOfLastOccurrence]
+next :: (Int, M.Map Int Int, Int) -> (Int, M.Map Int Int, Int)
+next (i, m, incomingVal) = (i+1, M.insert incomingVal i m, outgoingVal)
   where
-    indexOfLastOccurrence = case lastOccurrence of
-      Nothing -> length l
-      Just (i, _) -> i + 1
-    lastOccurrence = find (\(_, n) -> n == last l) $ reverse $ zip [0..] (take (length l - 1) l)
---
---nextEntry :: [Int] -> Int
---    indexOfLastOccurrence = case lastOccurrence of
---      Nothing -> length l
---      Just (i, _) -> i + 1
---    lastOccurrence = find (\(_, n) -> n == last l) $ reverse $ zip [0..] (take (length l - 1) l)
+    outgoingVal = case m M.!? incomingVal of
+      Nothing -> 0
+      Just x -> i - x
 
 parse :: String -> [Int]
 parse = map read . splitOn ","
 
+getNthEntry :: Int -> String -> Int
+getNthEntry n = 
+  (\(_, _, x) -> x) . until (\(i, _, _) -> i == n) next . 
+  (\l -> (length l, M.fromList (zip (init l) [1..]), last l)) . parse
+
 day15a :: String -> String
-day15a = show . (!! 2019) . (!! 2020) . iterate appendNextEntry . parse
+day15a = show . getNthEntry 2020
 
 day15b :: String -> String
---day15b = show . (!! 100) . iterate appendNextEntry . parse
-day15b = show . (!! (30000000 - 1)) . (!! 30000000) . iterate appendNextEntry . parse -- brute
+day15b = show . getNthEntry 30000000
