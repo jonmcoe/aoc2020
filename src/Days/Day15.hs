@@ -1,9 +1,9 @@
 module Days.Day15 where
 
 import Data.List.Split (splitOn)
-import qualified Data.Map as M
+import qualified Data.IntMap as M
 
-next :: (Int, M.Map Int Int, Int) -> (Int, M.Map Int Int, Int)
+next :: (Int, M.IntMap Int, Int) -> (Int, M.IntMap Int, Int)
 next (i, m, incomingVal) = (i+1, M.insert incomingVal i m, outgoingVal)
   where
     outgoingVal = case m M.!? incomingVal of
