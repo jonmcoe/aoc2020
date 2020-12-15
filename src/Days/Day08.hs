@@ -1,5 +1,6 @@
 module Days.Day08 where
 
+import Days.Common (rightOrDie)
 import Text.Parsec.Char (oneOf, char)
 import Text.Parsec
 import Data.Char (toUpper)
@@ -34,13 +35,8 @@ lineParse = do
   val <- many1 (oneOf "-0123456789")
   return (read $ map toUpper op, read val)
 
-rightOrError :: Either ParseError a -> a
-rightOrError x = case x of
-  Left l -> error $ "bad:  " ++ show l
-  Right r -> r
-
 parseMachine :: String -> Machine
-parseMachine s = Machine {instructions = map rightOrError insList, alreadyRan = S.empty, position = 0, accumulatorValue = 0}
+parseMachine s = Machine {instructions = map rightOrDie insList, alreadyRan = S.empty, position = 0, accumulatorValue = 0}
   where
     insList = map (parse lineParse "") (lines s)
 
