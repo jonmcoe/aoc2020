@@ -14,6 +14,9 @@ data MachineState = MachineState {
 emptyMachine :: MachineState
 emptyMachine = MachineState {entries = M.empty, mask = []}
 
+parseAll :: Parsec String () [BinaryManipulatingInstruction]
+parseAll = parseLine `sepEndBy1` char '\n'
+
 parseLine :: Parsec String () BinaryManipulatingInstruction
 parseLine = try parseMask <|> parseMem
   where
@@ -27,7 +30,6 @@ parseLine = try parseMask <|> parseMem
       _ <- string "mask = "
       s <- many1 (oneOf "X01")
       return $ Mask $ zip [0..] (reverse s)
-
 
 applyMaskSimple :: MaskList -> Int -> Int
 applyMaskSimple masky n = foldl (\acc (i,bitVal) -> alterBit bitVal acc i) n masky
@@ -57,7 +59,7 @@ runInstruction2 mac (Mem k v) = mac {entries = M.union newEntries (entries mac)}
 
 sumOfAllMemoryValuesAtCompletion :: (MachineState -> BinaryManipulatingInstruction -> MachineState) -> String -> Int
 sumOfAllMemoryValuesAtCompletion f =
-  sum . M.elems . entries . foldl f emptyMachine . map (rightOrDie . parse parseLine "") . lines
+  sum . M.elems . entries . foldl f emptyMachine . rightOrDie . parse parseAll ""
 
 day14a :: String -> String
 day14a = show . sumOfAllMemoryValuesAtCompletion runInstruction1
