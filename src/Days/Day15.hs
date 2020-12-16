@@ -10,13 +10,11 @@ next (i, m, incomingVal) = (i+1, M.insert incomingVal i m, outgoingVal)
       Nothing -> 0
       Just x -> i - x
 
-parse :: String -> [Int]
-parse = map read . splitOn ","
-
 getNthEntry :: Int -> String -> Int
 getNthEntry n = 
   (\(_, _, x) -> x) . until (\(i, _, _) -> i == n) next . 
   (\l -> (length l, M.fromList (zip (init l) [1..]), last l)) . parse
+  where parse = map read . splitOn ","
 
 day15a :: String -> String
 day15a = show . getNthEntry 2020
