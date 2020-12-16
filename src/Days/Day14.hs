@@ -15,7 +15,7 @@ emptyMachine :: MachineState
 emptyMachine = MachineState {entries = M.empty, mask = []}
 
 parseAll :: Parsec String () [BinaryManipulatingInstruction]
-parseAll = parseLine `sepEndBy1` char '\n'
+parseAll = parseLine `sepEndBy1` endOfLine
 
 parseLine :: Parsec String () BinaryManipulatingInstruction
 parseLine = try parseMask <|> parseMem
