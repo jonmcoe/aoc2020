@@ -1,7 +1,6 @@
 module Days.Day14 where
 
 import Data.Bits (clearBit, setBit)
-import Data.List (isPrefixOf)
 import Days.Common (rightOrDie)
 import Text.Parsec
 import qualified Data.Map as M
@@ -15,25 +14,20 @@ data MachineState = MachineState {
 emptyMachine :: MachineState
 emptyMachine = MachineState {entries = M.empty, mask = []}
 
-parseMask :: Parsec String () BinaryManipulatingInstruction
-parseMask = do
-  _ <- string "mask = "
-  s <- many (oneOf "X01")
-  return $ Mask $ zip [0..] (reverse s)
+parseLine :: Parsec String () BinaryManipulatingInstruction
+parseLine = try parseMask <|> parseMem
+  where
+    parseMem = do
+      _ <- string "mem["
+      addr <- many1 digit
+      _ <- string "] = "
+      val <- many1 digit
+      return $ Mem (read addr) (read val)
+    parseMask = do
+      _ <- string "mask = "
+      s <- many1 (oneOf "X01")
+      return $ Mask $ zip [0..] (reverse s)
 
-parseMem :: Parsec String () BinaryManipulatingInstruction
-parseMem = do
-  _ <- string "mem["
-  addr <- many digit
-  _ <- string "] = "
-  val <- many digit
-  return $ Mem (read addr) (read val)
-
-parseLine :: [Char] -> BinaryManipulatingInstruction
-parseLine l
-  | "mask" `isPrefixOf` l = rightOrDie $ parse parseMask "" l -- TODO: move manual prefix check into real parser attempts
-  | "mem" `isPrefixOf` l = rightOrDie $ parse parseMem "" l
-  | otherwise = error $ "bad line: " ++ l
 
 applyMaskSimple :: MaskList -> Int -> Int
 applyMaskSimple masky n = foldl (\acc (i,bitVal) -> alterBit bitVal acc i) n masky
@@ -51,10 +45,6 @@ applyMaskWithFloaters masky n = foldl makeList [n] masky
     f 'X' i' n' = [setBit n' i', clearBit n' i']
     f  c  _ _ = error $ "bad: "  ++ [c]
 
---toBinary :: Int -> [Int] -> [Int]
---toBinary 0 acc = acc
---toBinary n acc = toBinary (n `div` 2) ((n `mod` 2):acc)
-
 runInstruction1 :: MachineState -> BinaryManipulatingInstruction -> MachineState
 runInstruction1 mac (Mask m)  = mac {mask = m}
 runInstruction1 mac (Mem k v) = mac {entries = M.insert k newValue (entries mac)}
@@ -65,9 +55,9 @@ runInstruction2 mac (Mask m)  = mac {mask = m}
 runInstruction2 mac (Mem k v) = mac {entries = M.union newEntries (entries mac)}
   where newEntries = M.fromList [(k' , v) | k' <- applyMaskWithFloaters (mask mac) k]
 
-
 sumOfAllMemoryValuesAtCompletion :: (MachineState -> BinaryManipulatingInstruction -> MachineState) -> String -> Int
-sumOfAllMemoryValuesAtCompletion f = sum . M.elems . entries . foldl f emptyMachine . map parseLine . lines
+sumOfAllMemoryValuesAtCompletion f =
+  sum . M.elems . entries . foldl f emptyMachine . map (rightOrDie . parse parseLine "") . lines
 
 day14a :: String -> String
 day14a = show . sumOfAllMemoryValuesAtCompletion runInstruction1
